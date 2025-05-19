@@ -40,7 +40,7 @@ pub fn main() !void {
 }
 
 fn view_only_person(a: std.mem.Allocator, person: *Person) ![]u8 {
-    const tmpl = @embedFile("templates/view_only_person_tmpl.html");
+    const tmpl = @embedFile("../static/view_only_person_tmpl.html");
 
     const step1 = try std.mem.replaceOwned(u8, a, tmpl, "{{FIRST_NAME}}", person.first_name);
     const step2 = try std.mem.replaceOwned(u8, a, step1, "{{LAST_NAME}}", person.last_name);
@@ -52,7 +52,7 @@ fn view_only_person(a: std.mem.Allocator, person: *Person) ![]u8 {
 fn index(_: *httpz.Request, res: *httpz.Response) !void {
     stored_person_lock.lockShared();
     defer stored_person_lock.unlockShared();
-    const index_templ = @embedFile("templates/index.html");
+    const index_templ = @embedFile("../static/index.html");
     const person_html = try view_only_person(res.arena, &stored_person);
     const result = try std.mem.replaceOwned(u8, res.arena, index_templ, "{{CONTENT}}", person_html);
     res.body = result;
@@ -62,7 +62,7 @@ fn contact_edit(_: *httpz.Request, res: *httpz.Response) !void {
     stored_person_lock.lockShared();
     defer stored_person_lock.unlockShared();
 
-    const tmpl = @embedFile("templates/contact_edit_tmpl.html");
+    const tmpl = @embedFile("../static/contact_edit_tmpl.html");
     const step1 = try std.mem.replaceOwned(u8, res.arena, tmpl, "{{FIRST_NAME}}", stored_person.first_name);
     const step2 = try std.mem.replaceOwned(u8, res.arena, step1, "{{LAST_NAME}}", stored_person.last_name);
     const result = try std.mem.replaceOwned(u8, res.arena, step2, "{{EMAIL}}", stored_person.email);

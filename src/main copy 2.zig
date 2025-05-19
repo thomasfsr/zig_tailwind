@@ -41,7 +41,7 @@ pub fn main() !void {
 }
 
 fn serve_tailwind(_: *httpz.Request, res: *httpz.Response) !void {
-    const file_path = "src/templates/out.css";
+    const file_path = "css/out.css";
     const file = try std.fs.cwd().openFile(file_path, .{});
     defer file.close();
 
