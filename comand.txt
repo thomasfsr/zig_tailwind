@@ -1,0 +1,1 @@
+tailwindcss --input src/templates/in.css --output src/templates/out.css   
