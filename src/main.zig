@@ -56,7 +56,7 @@ fn view_only_person(a: std.mem.Allocator, person: *Person) ![]u8 {
         \\           <div class="mb-2"><label class="font-bold">First Name</label>: {s}</div>
         \\           <div class="mb-2"><label class="font-bold">Last Name</label>: {s}</div>
         \\           <div class="mb-2"><label class="font-bold">Email</label>: {s}</div>
-        \\           <button hx-get="/contact/1/edit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-600">
+        \\           <button hx-get="/contact/1/edit" class="bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-green-600 text-white px-4 py-2 rounded transition-all duration-300">
         \\           Click To Edit
         \\           </button>
         \\       </div>

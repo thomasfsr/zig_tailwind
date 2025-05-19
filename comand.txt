@@ -1,1 +1,1 @@
-tailwindcss --input src/templates/in.css --output src/templates/out.css   
+./tailwindcss -i css/in.css -o css/out.css
