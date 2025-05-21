@@ -25,8 +25,10 @@ pub fn main() !void {
         },
     }, {});
 
-    defer server.deinit();
-    defer server.stop();
+    defer {
+        server.stop();
+        server.deinit();
+    }
     var router = try server.router(.{});
 
     router.get("/", index, .{});
@@ -40,68 +42,52 @@ pub fn main() !void {
     try server.listen();
 }
 
-fn serve_tailwind(_: *httpz.Request, res: *httpz.Response) !void {
-    const file_path = "css/out.css";
-    const file = try std.fs.cwd().openFile(file_path, .{});
-    defer file.close();
+//------------------------- ENDPOINTS -------------------------
 
-    const contents = try file.readToEndAlloc(res.arena, std.math.maxInt(usize));
+// fn serve_tailwind(_: *httpz.Request, res: *httpz.Response) !void {
+//     const file_path = "./src/css/out.css";
+//     const file = try std.fs.cwd().openFile(file_path, .{});
+//     defer file.close();
+
+//     const contents = try file.readToEndAlloc(res.arena, std.math.maxInt(usize));
+//     res.content_type = .CSS;
+//     res.body = contents;
+// }
+
+fn serve_tailwind(_: *httpz.Request, res: *httpz.Response) !void {
+    const contents = @embedFile("./css/out.css");
+
     res.content_type = .CSS;
-    res.body = contents;
+    res.body = contents; // No runtime file I/O needed!
 }
 
 fn view_only_person(a: std.mem.Allocator, person: *Person) ![]u8 {
-    return try std.fmt.allocPrint(a,
-        \\       <div hx-target="this" hx-swap="outerHTML" class="p-4">
-        \\           <div class="mb-2"><label class="font-bold">First Name</label>: {s}</div>
-        \\           <div class="mb-2"><label class="font-bold">Last Name</label>: {s}</div>
-        \\           <div class="mb-2"><label class="font-bold">Email</label>: {s}</div>
-        \\           <button hx-get="/contact/1/edit" class="bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-green-600 text-white px-4 py-2 rounded transition-all duration-300">
-        \\           Click To Edit
-        \\           </button>
-        \\       </div>
-    , .{ person.first_name, person.last_name, person.email });
+    const tmpl = @embedFile("static/view_only_person.html");
+    const step1 = try std.mem.replaceOwned(u8, a, tmpl, "{{FIRST_NAME}}", person.first_name);
+    const step2 = try std.mem.replaceOwned(u8, a, step1, "{{LAST_NAME}}", person.last_name);
+    const result = try std.mem.replaceOwned(u8, a, step2, "{{EMAIL}}", person.email);
+    return result;
 }
 
 fn index(_: *httpz.Request, res: *httpz.Response) !void {
     stored_person_lock.lockShared();
     defer stored_person_lock.unlockShared();
-    res.body = try std.fmt.allocPrint(res.arena,
-        \\           <!DOCTYPE html>
-        \\           <html>
-        \\           <head>
-        \\               <title>Zig + HTMX</title>
-        \\               <script src="https://unpkg.com/htmx.org"></script>
-        \\               <link href="/tailwind.css" rel="stylesheet">
-        \\           </head>
-        \\           <body>
-        \\           {s}
-        \\           </body>
-        \\           </html>
-    , .{try view_only_person(res.arena, &stored_person)});
+    const index_templ = @embedFile("static/index.html");
+    const person_html = try view_only_person(res.arena, &stored_person);
+    const result = try std.mem.replaceOwned(u8, res.arena, index_templ, "{{CONTENT}}", person_html);
+    res.body = result;
 }
 
 fn contact_edit(_: *httpz.Request, res: *httpz.Response) !void {
     stored_person_lock.lockShared();
     defer stored_person_lock.unlockShared();
-    res.body = try std.fmt.allocPrint(res.arena,
-        \\<form hx-put="/contact/1" hx-target="this" hx-swap="outerHTML" class="p-4">
-        \\<div class="mb-4">
-        \\<label class="block font-bold mb-1">First Name</label>
-        \\<input type="text" name="first_name" value="{s}" class="border rounded px-2 py-1 w-full">
-        \\</div>
-        \\<div class="mb-4">
-        \\<label class="block font-bold mb-1">Last Name</label>
-        \\<input type="text" name="last_name" value="{s}" class="border rounded px-2 py-1 w-full">
-        \\</div>
-        \\<div class="mb-4">
-        \\<label class="block font-bold mb-1">Email Address</label>
-        \\<input type="email" name="email" value="{s}" class="border rounded px-2 py-1 w-full">
-        \\</div>
-        \\<button class="bg-green-400 text-white px-4 py-2 rounded hover:bg-green-600 mr-2">Submit</button>
-        \\<button class="bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-600" hx-get="/contact/1">Cancel</button>
-        \\</form>
-    , .{ stored_person.first_name, stored_person.last_name, stored_person.email });
+
+    const tmpl = @embedFile("static/contact_edit.html");
+    const step1 = try std.mem.replaceOwned(u8, res.arena, tmpl, "{{FIRST_NAME}}", stored_person.first_name);
+    const step2 = try std.mem.replaceOwned(u8, res.arena, step1, "{{LAST_NAME}}", stored_person.last_name);
+    const result = try std.mem.replaceOwned(u8, res.arena, step2, "{{EMAIL}}", stored_person.email);
+
+    res.body = result;
 }
 
 fn cancel_edit(_: *httpz.Request, res: *httpz.Response) !void {

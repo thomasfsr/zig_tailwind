@@ -1,0 +1,16 @@
+<form hx-put="/contact/1" hx-target="this" hx-swap="outerHTML" class="p-4">
+    <div class="mb-4">
+    <label class="block font-bold mb-1">First Name</label>
+    <input type="text" name="first_name" value="{{FIRST_NAME}}" class="border rounded px-2 py-1 w-full">
+    </div>
+    <div class="mb-4">
+    <label class="block font-bold mb-1">Last Name</label>
+    <input type="text" name="last_name" value="{{LAST_NAME}}" class="border rounded px-2 py-1 w-full">
+    </div>
+    <div class="mb-4">
+    <label class="block font-bold mb-1">Email Address</label>
+    <input type="email" name="email" value="{{EMAIL}}" class="border rounded px-2 py-1 w-full">
+    </div>
+    <button class="bg-green-400 text-white px-4 py-2 rounded hover:bg-green-600 mr-2">Submit</button>
+    <button class="bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-600" hx-get="/contact/1">Cancel</button>
+</form>
