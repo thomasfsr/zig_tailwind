@@ -25,10 +25,8 @@ pub fn main() !void {
         },
     }, {});
 
-    defer {
-        server.stop();
-        server.deinit();
-    }
+    defer server.deinit();
+    defer server.stop();
     var router = try server.router(.{});
 
     router.get("/", index, .{});
@@ -44,22 +42,22 @@ pub fn main() !void {
 
 //------------------------- ENDPOINTS -------------------------
 
-// fn serve_tailwind(_: *httpz.Request, res: *httpz.Response) !void {
-//     const file_path = "./src/css/out.css";
-//     const file = try std.fs.cwd().openFile(file_path, .{});
-//     defer file.close();
-
-//     const contents = try file.readToEndAlloc(res.arena, std.math.maxInt(usize));
-//     res.content_type = .CSS;
-//     res.body = contents;
-// }
-
 fn serve_tailwind(_: *httpz.Request, res: *httpz.Response) !void {
-    const contents = @embedFile("./css/out.css");
+    const file_path = "./src/css/out.css";
+    const file = try std.fs.cwd().openFile(file_path, .{});
+    defer file.close();
 
+    const contents = try file.readToEndAlloc(res.arena, std.math.maxInt(usize));
     res.content_type = .CSS;
-    res.body = contents; // No runtime file I/O needed!
+    res.body = contents;
 }
+
+// fn serve_tailwind(_: *httpz.Request, res: *httpz.Response) !void {
+//     const contents = @embedFile("./css/out.css");
+
+//     res.content_type = .CSS;
+//     res.body = contents; // No runtime file I/O needed!
+// }
 
 fn view_only_person(a: std.mem.Allocator, person: *Person) ![]u8 {
     const tmpl = @embedFile("static/view_only_person.html");

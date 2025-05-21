@@ -1,1 +1,12 @@
 @import "tailwindcss" source("../..");
+
+@tailwindss components;
+
+@layer components {
+    .centered-form {
+      @apply min-h-screen flex items-center justify-center;
+    }
+    .centered-form-inner {
+      @apply bg-white p-8 rounded shadow-md;
+    }
+  }
